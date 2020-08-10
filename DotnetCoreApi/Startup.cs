@@ -17,6 +17,7 @@ namespace DotnetCoreApi
 {
     public class Startup
     {
+        // 第一天 30分鐘
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
