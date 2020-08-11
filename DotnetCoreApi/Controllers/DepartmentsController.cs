@@ -51,7 +51,7 @@ namespace DotnetCoreApi.Controllers
             {
                 return BadRequest();
             }
-
+            department.DateModified = DateTime.Now;
             _context.Entry(department).State = EntityState.Modified;
 
             try
