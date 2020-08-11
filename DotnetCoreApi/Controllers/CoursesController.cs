@@ -39,6 +39,18 @@ namespace DotnetCoreApi.Controllers
             return await _context.VwCourseStudentCount.ToListAsync();
         }
 
+        [HttpGet("DepartmentCourseCountFromSqlRaw")]
+        public async Task<ActionResult<IEnumerable<VwDepartmentCourseCount>>> GetDepartmentCourseCountFromSqlRaw()
+        {
+            #region sql
+            var sql = @"
+SELECT  DepartmentID,Name,CourseCount 
+FROM    [dbo].[vwDepartmentCourseCount]
+";
+            #endregion
+            return await _context.VwDepartmentCourseCount.FromSqlRaw(sql).ToListAsync();
+        }
+
         [HttpGet("DepartmentCourseCount")]
         public async Task<ActionResult<IEnumerable<VwDepartmentCourseCount>>> GetDepartmentCourseCount()
         {
