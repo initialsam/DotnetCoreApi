@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DotnetCoreApi.Models;
+using Microsoft.Data.SqlClient;
 
 namespace DotnetCoreApi.Controllers
 {
@@ -51,12 +52,13 @@ namespace DotnetCoreApi.Controllers
             {
                 return BadRequest();
             }
-            department.DateModified = DateTime.Now;
-            _context.Entry(department).State = EntityState.Modified;
-
+         
             try
             {
-                await _context.SaveChangesAsync();
+                department.DateModified = DateTime.Now;
+                await _context.Database.ExecuteSqlInterpolatedAsync(
+                    $"EXEC spDepartment_Update {department.DepartmentId},{ department.Name}, { department.Budget}, {department.StartDate}, {department.InstructorId}, {department.DateModified}");
+
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -79,24 +81,28 @@ namespace DotnetCoreApi.Controllers
         [HttpPost]
         public async Task<ActionResult<Department>> PostDepartment(Department department)
         {
-            _context.Department.Add(department);
-            await _context.SaveChangesAsync();
+            department.DateModified = DateTime.Now;
+            await _context.Database.ExecuteSqlInterpolatedAsync(
+                $"EXEC spDepartment_Insert { department.Name}, { department.Budget}, {department.StartDate}, {department.InstructorId}, {department.RowVersion}, {department.DateModified}");
+            //TODO 優化取得DepartmentId
+            var newDepartment = _context.Department.OrderByDescending(x => x.DepartmentId).Take(1).ToList().First();
 
-            return CreatedAtAction("GetDepartment", new { id = department.DepartmentId }, department);
+            return CreatedAtAction("GetDepartment", new { id = newDepartment.DepartmentId }, newDepartment);
         }
 
         // DELETE: api/Departments/5
         [HttpDelete("{id}")]
         public async Task<ActionResult<Department>> DeleteDepartment(int id)
         {
+          
             var department = await _context.Department.FindAsync(id);
             if (department == null)
             {
                 return NotFound();
             }
 
-            _context.Department.Remove(department);
-            await _context.SaveChangesAsync();
+            await _context.Database.ExecuteSqlInterpolatedAsync(
+                    $"EXEC spDepartment_Delete {id}");
 
             return department;
         }
