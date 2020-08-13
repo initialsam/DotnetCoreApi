@@ -24,7 +24,7 @@ namespace DotnetCoreApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Course>>> GetCourse()
         {
-            return await _context.Course.ToListAsync();
+            return await _context.Course.Where(x => x.IsDeleted == false).ToListAsync();
         }
 
         [HttpGet("CourseStudents")]
@@ -61,7 +61,7 @@ FROM    [dbo].[vwDepartmentCourseCount]
         [HttpGet("{id}")]
         public async Task<ActionResult<Course>> GetCourse(int id)
         {
-            var course = await _context.Course.FindAsync(id);
+            var course = await _context.Course.Where(x => x.CourseId == id && x.IsDeleted == false).SingleOrDefaultAsync();
 
             if (course == null)
             {

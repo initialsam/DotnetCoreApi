@@ -25,14 +25,14 @@ namespace DotnetCoreApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Department>>> GetDepartment()
         {
-            return await _context.Department.ToListAsync();
+            return await _context.Department.Where(x => x.IsDeleted == false).ToListAsync();
         }
 
         // GET: api/Departments/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Department>> GetDepartment(int id)
         {
-            var department = await _context.Department.FindAsync(id);
+            var department = await _context.Department.Where(x => x.DepartmentId == id && x.IsDeleted == false).SingleOrDefaultAsync();
 
             if (department == null)
             {
@@ -52,12 +52,12 @@ namespace DotnetCoreApi.Controllers
             {
                 return BadRequest();
             }
-         
+
             try
             {
                 department.DateModified = DateTime.Now;
                 var res = await _context.Department.FromSqlInterpolated(
-                    $"EXEC Department_Update {department.DepartmentId},{ department.Name}, { department.Budget}, {department.StartDate}, {department.InstructorId}, {department.RowVersion}, {department.DateModified}")
+                    $"EXEC Department_Update {department.DepartmentId},{ department.Name}, { department.Budget}, {department.StartDate}, {department.InstructorId}, {department.RowVersion}, {department.DateModified}, {department.IsDeleted}")
                      .ToListAsync();
                 var updatedDepartment = res.SingleOrDefault();
             }
@@ -85,9 +85,9 @@ namespace DotnetCoreApi.Controllers
             department.StartDate = DateTime.Now;
             department.DateModified = DateTime.Now;
             var res = await _context.Department.FromSqlInterpolated(
-                $"EXEC Department_Insert { department.Name}, { department.Budget}, {department.StartDate}, {department.InstructorId}, {department.DateModified}")
+                $"EXEC Department_Insert { department.Name}, { department.Budget}, {department.StartDate}, {department.InstructorId}, {department.DateModified}, {department.IsDeleted}")
                 .ToListAsync();
-             var newDepartment = res.SingleOrDefault();
+            var newDepartment = res.SingleOrDefault();
 
             return CreatedAtAction("GetDepartment", new { id = newDepartment.DepartmentId }, newDepartment);
         }
@@ -96,7 +96,7 @@ namespace DotnetCoreApi.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<Department>> DeleteDepartment(int id)
         {
-          
+
             var department = await _context.Department.FindAsync(id);
             if (department == null)
             {
@@ -105,7 +105,7 @@ namespace DotnetCoreApi.Controllers
 
             await _context.Database.ExecuteSqlInterpolatedAsync(
                     $"EXEC Department_Delete {id},{department.RowVersion}");
- 
+
             return department;
         }
 
