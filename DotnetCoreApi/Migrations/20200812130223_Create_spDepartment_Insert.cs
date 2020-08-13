@@ -7,26 +7,30 @@ namespace DotnetCoreApi.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(@"
-IF EXISTS(SELECT * FROM sysobjects WHERE name = 'spDepartment_Insert')
-	DROP PROC spDepartment_Insert
+IF EXISTS(SELECT * FROM sysobjects WHERE name = 'Department_Insert')
+	DROP PROC Department_Insert
 GO
 
-----------------------------------------------------------------------------
--- Insert a single record into Department
-----------------------------------------------------------------------------
-CREATE PROC spDepartment_Insert
-	@Name nvarchar(100) = NULL,
-	@Budget money,
-	@StartDate datetime,
-	@InstructorID int = NULL,
-	@RowVersion timestamp = NULL,
-	@DateModified datetime2 = NULL
+ [dbo].[Department_Insert]
+    @Name [nvarchar](50),
+    @Budget [money],
+    @StartDate [datetime],
+    @InstructorID [int],
+	@DateModified [datetime2]
 AS
+BEGIN
+    INSERT [dbo].[Department]([Name], [Budget], [StartDate], [InstructorID], [DateModified])
+    VALUES (@Name, @Budget, @StartDate, @InstructorID, @DateModified)
 
-INSERT Department(Name, Budget, StartDate, InstructorID, RowVersion, DateModified)
-VALUES (@Name, @Budget, @StartDate, @InstructorID, NULL, COALESCE(@DateModified, '0001-01-01T00:00:00.0000000'))
+    DECLARE @DepartmentID int
+    SELECT @DepartmentID = [DepartmentID]
+    FROM [dbo].[Department]
+    WHERE @@ROWCOUNT > 0 AND [DepartmentID] = scope_identity()
 
-RETURN SCOPE_IDENTITY()
+    SELECT t0.*
+    FROM [dbo].[Department] AS t0
+    WHERE @@ROWCOUNT > 0 AND t0.[DepartmentID] = @DepartmentID
+END
 
 GO
 ");

@@ -56,9 +56,10 @@ namespace DotnetCoreApi.Controllers
             try
             {
                 department.DateModified = DateTime.Now;
-                await _context.Database.ExecuteSqlInterpolatedAsync(
-                    $"EXEC spDepartment_Update {department.DepartmentId},{ department.Name}, { department.Budget}, {department.StartDate}, {department.InstructorId}, {department.DateModified}");
-
+                var res = await _context.Department.FromSqlInterpolated(
+                    $"EXEC Department_Update {department.DepartmentId},{ department.Name}, { department.Budget}, {department.StartDate}, {department.InstructorId}, {department.RowVersion}, {department.DateModified}")
+                     .ToListAsync();
+                var updatedDepartment = res.SingleOrDefault();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -81,11 +82,12 @@ namespace DotnetCoreApi.Controllers
         [HttpPost]
         public async Task<ActionResult<Department>> PostDepartment(Department department)
         {
+            department.StartDate = DateTime.Now;
             department.DateModified = DateTime.Now;
-            await _context.Database.ExecuteSqlInterpolatedAsync(
-                $"EXEC spDepartment_Insert { department.Name}, { department.Budget}, {department.StartDate}, {department.InstructorId}, {department.RowVersion}, {department.DateModified}");
-            //TODO 優化取得DepartmentId
-            var newDepartment = _context.Department.OrderByDescending(x => x.DepartmentId).Take(1).ToList().First();
+            var res = await _context.Department.FromSqlInterpolated(
+                $"EXEC Department_Insert { department.Name}, { department.Budget}, {department.StartDate}, {department.InstructorId}, {department.DateModified}")
+                .ToListAsync();
+             var newDepartment = res.SingleOrDefault();
 
             return CreatedAtAction("GetDepartment", new { id = newDepartment.DepartmentId }, newDepartment);
         }
@@ -102,8 +104,8 @@ namespace DotnetCoreApi.Controllers
             }
 
             await _context.Database.ExecuteSqlInterpolatedAsync(
-                    $"EXEC spDepartment_Delete {id}");
-
+                    $"EXEC Department_Delete {id},{department.RowVersion}");
+ 
             return department;
         }
 
