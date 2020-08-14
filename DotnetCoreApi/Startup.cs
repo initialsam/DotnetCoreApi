@@ -21,6 +21,7 @@ namespace DotnetCoreApi
         // 第二天 30分鐘
         // 第三天 60分鐘
         // 第四天 70分鐘
+        // 第五天 80分鐘
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
