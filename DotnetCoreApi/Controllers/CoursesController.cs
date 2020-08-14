@@ -119,7 +119,7 @@ FROM    [dbo].[vwDepartmentCourseCount]
         [HttpDelete("{id}")]
         public async Task<ActionResult<Course>> DeleteCourse(int id)
         {
-            var course = await _context.Course.FindAsync(id);
+            var course = await _context.Course.Where(x => x.CourseId == id && x.IsDeleted == false).SingleOrDefaultAsync();
             if (course == null)
             {
                 return NotFound();

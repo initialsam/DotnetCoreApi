@@ -56,10 +56,11 @@ namespace DotnetCoreApi.Controllers
             try
             {
                 department.DateModified = DateTime.Now;
-                var res = await _context.Department.FromSqlInterpolated(
-                    $"EXEC Department_Update {department.DepartmentId},{ department.Name}, { department.Budget}, {department.StartDate}, {department.InstructorId}, {department.RowVersion}, {department.DateModified}, {department.IsDeleted}")
-                     .ToListAsync();
-                var updatedDepartment = res.SingleOrDefault();
+                var updatedDepartment = await _context.DepartmentStoredProcedureUpdate(department);
+                if(updatedDepartment == null)
+                {
+                    return BadRequest();
+                }
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -84,10 +85,11 @@ namespace DotnetCoreApi.Controllers
         {
             department.StartDate = DateTime.Now;
             department.DateModified = DateTime.Now;
-            var res = await _context.Department.FromSqlInterpolated(
-                $"EXEC Department_Insert { department.Name}, { department.Budget}, {department.StartDate}, {department.InstructorId}, {department.DateModified}, {department.IsDeleted}")
-                .ToListAsync();
-            var newDepartment = res.SingleOrDefault();
+            var newDepartment = await _context.DepartmentStoredProcedureInsert(department);
+            if(newDepartment == null)
+            {
+                return BadRequest();
+            }
 
             return CreatedAtAction("GetDepartment", new { id = newDepartment.DepartmentId }, newDepartment);
         }
@@ -97,14 +99,13 @@ namespace DotnetCoreApi.Controllers
         public async Task<ActionResult<Department>> DeleteDepartment(int id)
         {
 
-            var department = await _context.Department.FindAsync(id);
+            var department = await _context.Department.Where(x => x.DepartmentId == id && x.IsDeleted == false).SingleOrDefaultAsync();
             if (department == null)
             {
                 return NotFound();
             }
 
-            await _context.Database.ExecuteSqlInterpolatedAsync(
-                    $"EXEC Department_Delete {id},{department.RowVersion}");
+            await _context.DepartmentStoredProcedureDelete(id, department);
 
             return department;
         }

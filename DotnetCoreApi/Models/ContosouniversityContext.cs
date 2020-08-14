@@ -30,30 +30,6 @@ namespace DotnetCoreApi.Models
         public virtual DbSet<VwCourseStudents> VwCourseStudents { get; set; }
         public virtual DbSet<VwDepartmentCourseCount> VwDepartmentCourseCount { get; set; }
 
-        /// <summary>  
-        /// Overriding Save Changes  
-        /// </summary>  
-        /// <returns></returns>  
-        public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
-        {
-            var selectedEntityList = this.ChangeTracker.Entries();
-
-            //Gt user Name from  session or other authentication   
-            var list = new List<string> { "DotnetCoreApi.Models.Department", "DotnetCoreApi.Models.Course", "DotnetCoreApi.Models.Person" };
-
-            foreach (var entity in selectedEntityList)
-            {
-                var name = entity.Entity.GetType().FullName;
-                if(list.Contains(name) && entity.State == EntityState.Deleted)
-                {
-                    entity.State = EntityState.Modified;
-                    entity.CurrentValues.SetValues(new { IsDeleted = true });
-                }
-              
-            }
-
-            return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
-        }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Course>(entity =>

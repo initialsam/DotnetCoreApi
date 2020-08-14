@@ -89,7 +89,7 @@ namespace DotnetCoreApi.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<Person>> DeletePerson(int id)
         {
-            var person = await _context.Person.FindAsync(id);
+            var person = await _context.Person.Where(x => x.Id == id && x.IsDeleted == false).SingleOrDefaultAsync();
             if (person == null)
             {
                 return NotFound();
