@@ -21,7 +21,7 @@ namespace DotnetCoreApi.Models
             var selectedEntityList = this.ChangeTracker.Entries();
             foreach (var entity in selectedEntityList)
             {
-                if (entity is ISoftDeleteable softDeleteable && entity.State == EntityState.Deleted)
+                if (entity.Entity is ISoftDeleteable softDeleteable && entity.State == EntityState.Deleted)
                 {
                     entity.State = EntityState.Modified;
                     softDeleteable.IsDeleted = true;
